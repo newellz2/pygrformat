@@ -17,6 +17,7 @@ FLAGS = gflags.FLAGS
 gflags.DEFINE_string("input",os.path.join(CURRENT_DIRECTORY,"data"),"Input directory",short_name="i")
 gflags.DEFINE_string("output",os.path.join(CURRENT_DIRECTORY,"output"),"Output directory",short_name="o")
 gflags.DEFINE_string("exe",os.path.join(CURRENT_DIRECTORY,"grformat.exe"),"Path to grformat executable",short_name="e")
+gflags.DEFINE_list("flags",["/i2"],"Command line flags for grformat.exe",short_name="f")
 gflags.DEFINE_boolean('addtxt', False, 'Adds .txt to the end of the filename')
 gflags.DEFINE_boolean('debug', False, 'Produces debugging output')
 
@@ -36,13 +37,13 @@ def DisplayMessage(message):
     MessageBox = prototype(("MessageBoxA", windll.user32), paramflags)
     MessageBox()
 
-def ConvertFiles(command,files,FLAGS=FLAGS,addtxt=False):
+def ConvertFiles(command,files,addtxt=False,flags=None):
     error_flag = False
     error_messages = []
     sensor_data = []
     for f in files:
         try:
-            output = subprocess.check_output([command,"/i2",f])
+            output = subprocess.check_output([command,flags,f])
             s = SensorData(output,addtxt=addtxt)
             sensor_data.append(s)
         except WindowsError, e:
@@ -84,7 +85,7 @@ def main(argv):
         pprint.pprint(input_files)
 
     # Convert the files and extract the data
-    sensor_data = ConvertFiles(FLAGS.exe,input_files,addtxt=FLAGS.addtxt)
+    sensor_data = ConvertFiles(FLAGS.exe,input_files,addtxt=FLAGS.addtxt,flags=FLAGS.flags)
 
     if FLAGS.debug:
         print "DEBUG Sensor data:"
